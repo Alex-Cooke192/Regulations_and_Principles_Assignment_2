@@ -1,10 +1,10 @@
 %% runBehaviouralScenario.m
 clear; clc;
 
-scenarioId = "MCV-3";   % choose: MCV-1, MCV-2, MCV-3
+scenarioId = "MCV-2";   % choose: MCV-1, MCV-2, MCV-3
 
 %% Simulation parameters
-N = 1000;                 % Number of trials
+N = 10;                 % Number of trials
 Fs = 100;
 dt = 1/Fs;
 Tsim = 20;
@@ -717,6 +717,12 @@ if scenarioId == "MCV-3"
             "String", txt, ...
             "FitBoxToText", "on", ...
             "BackgroundColor", "white");
+
+        pctWithin = sum(delays <= 0.01) / numel(delays) * 100;
+
+        text(0.006, max(ylim)*0.9, ...
+            sprintf('%.2f%% within 0.01s requirement', pctWithin), ...
+            'FontWeight','bold');
         hold off
     end
 
