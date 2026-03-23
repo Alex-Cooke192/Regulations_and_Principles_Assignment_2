@@ -4,7 +4,7 @@ clear; clc;
 scenarioId = "MCV-2";   % choose: MCV-1, MCV-2, MCV-3
 
 %% Simulation parameters
-N = 1000;                 % Number of trials
+N = 10;                 % Number of trials
 Fs = 100;
 dt = 1/Fs;
 Tsim = 20;
@@ -524,7 +524,10 @@ if scenarioId == "MCV-2"
         figure
         histogram(validDelays, 'BinWidth', binWidth)
         hold on
-        xline(req.MCV2.maxDetectionDelay, 'r--', 'LineWidth', 2)
+        xline(req.MCV2.maxDetectionDelay, 'r--', sprintf('Requirement (%.2f)', req.MCV2.maxDetectionDelay), ... 
+            'LineWidth', 2, ...
+            'labelVerticalAlignment', 'bottom', ...
+            'labelHorizontalAlignment', 'left')
         
         xlim([0 max(validDelays)+binWidth])
         xlabel("Detection delay (s)")
