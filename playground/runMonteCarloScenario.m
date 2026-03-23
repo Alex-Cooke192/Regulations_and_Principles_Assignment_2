@@ -4,7 +4,7 @@ clear; clc;
 scenarioId = "MCV-2";   % choose: MCV-1, MCV-2, MCV-3
 
 %% Simulation parameters
-N = 10;                 % Number of trials
+N = 1000;                 % Number of trials
 Fs = 100;
 dt = 1/Fs;
 Tsim = 20;
@@ -528,8 +528,8 @@ if scenarioId == "MCV-2"
         
         xlim([0 max(validDelays)+binWidth])
         xlabel("Detection delay (s)")
-        ylabel("Count")
-        title("MCV-2 Detection Delay Distribution")
+        ylabel("Probability")
+        title("Disctribution of Redundancy Detection Delays (MCV-2)")
         grid on
         
         pWithin = mean(validDelays <= req.MCV2.maxDetectionDelay) * 100;
@@ -681,7 +681,7 @@ if scenarioId == "MCV-3"
         hold on
         xline(req.MCV3.maxWarnDetectionDelay, 'r--', 'LineWidth', 2)
         xlabel("WARN detection delay (s)")
-        ylabel("Count")
+        ylabel("Probability")
         title("MCV-3 WARN Detection Delay Distribution")
         grid on
 
@@ -704,7 +704,7 @@ if scenarioId == "MCV-3"
         hold on
         xline(req.MCV3.maxFaultEscalationDelay, 'r--', 'LineWidth', 2)
         xlabel("FAULT escalation delay (s)")
-        ylabel("Count")
+        ylabel("Probability")
         title("MCV-3 FAULT Escalation Delay Distribution")
         grid on
 
