@@ -332,6 +332,10 @@ if scenarioId == "BV-4a" || scenarioId == "BV-4b" || scenarioId == "BV-4c" || sc
     xlabel("Time (s)")
     title(sprintf("Detected Sensor State During Scenario %s and fault type %s", scenarioId, faultName))
     grid on
+
+    if scenarioId == "BV-4a" || scenarioId == "BV-4b" || scenarioId == "BV-4c"
+        plotStateOccupancy(t, detectedStateNum, scenarioId)
+    end 
 end
 disp("Scenario complete.");
 
@@ -403,4 +407,46 @@ function classId = FaultClassifier(meta)
         otherwise
             classId = 0;
     end
+end
+
+function plotStateOccupancy(t, state, scenarioName)
+
+    % Define states
+    stateNames = ["OK", "SUSPECT", "FAILED"];
+    stateVals  = [0, 1, 2];
+
+    % Compute total duration
+    t = t(:); 
+    dt = diff(t);
+    dt = [dt; dt(end)]; % match length
+
+    % Time spent in each state
+    timeSpent = zeros(size(stateVals));
+
+    for i = 1:length(stateVals)
+        idx = (state == stateVals(i));
+        timeSpent(i) = sum(dt(idx));
+    end
+
+    % Convert to percentage if useful
+    timePercent = 100 * timeSpent / sum(timeSpent);
+
+    % Plot
+    figure;
+    barh(timeSpent)
+    yticks(1:length(stateNames))
+    yticklabels(stateNames)
+
+    xlabel('Time Spent (s)')
+    title(['State Occupancy - ' char(scenarioName)])
+
+    grid on
+
+    % Add labels on bars
+    for i = 1:length(timeSpent)
+        text(timeSpent(i)*0.5, i, ...
+            sprintf('%.2fs (%.1f%%)', timeSpent(i), timePercent(i)), ...
+            'HorizontalAlignment', 'center', 'Color', 'w', 'FontWeight', 'bold');
+    end
+
 end
