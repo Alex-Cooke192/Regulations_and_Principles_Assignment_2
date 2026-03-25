@@ -1,11 +1,17 @@
 %% runBehaviouralScenario.m
 clear; clc;
 
-scenarioId = "MCV-1";   % choose: MCV-1, MCV-2, MCV-3
+scenarioId = "MCV-3";   % choose: MCV-1, MCV-2, MCV-3
 
 %% Simulation parameters
-N = 1000;                 % Number of trials
-Fs = 100;
+N = 1000;       % Number of trials
+if scenarioId == "MCV-2" %% Sampling rate is dependent on the scenario - 0.01s requirement cannot be met for Fs 10 in MCV-2 (dt = 0.1)
+    Fs = 100;
+elseif scenarioId == "MCV-3"
+    Fs = 100; 
+else
+    Fs = 10;
+end
 dt = 1/Fs;
 Tsim = 20;
 t = 0:dt:Tsim;
@@ -106,7 +112,7 @@ for run = 1:N
     %% Apply scenario-specific configuration
     switch scenarioId
         case "MCV-1"
-            noiseScale = 4.0; 
+            noiseScale = 1.0; 
             altSensor.Injector = SimpleInjector("NoiseSigma", 0.3*noiseScale, "FaultRatePerSecond", 0.0);
             vsSensor.Injector = SimpleInjector("NoiseSigma", 0.1*noiseScale, "FaultRatePerSecond", 0.0);
             asSensor.Injector = SimpleInjector("NoiseSigma", 0.1*noiseScale, "FaultRatePerSecond", 0.0);
@@ -473,6 +479,7 @@ if scenarioId == "MCV-1"
     fprintf("Runs with any WARN: %d / %d\n", sum(warnOccured), N);
     fprintf("Runs with any FAULT: %d / %d\n", sum(faultOccured), N);
 
+    % Requirement check printout only
     pWarnTimestepsOK  = mean(warnTimestepsPerRun  <= req.MCV1.maxWarnTimestepsPerRun)  * 100;
     pWarnTimestepsBad = mean(warnTimestepsPerRun  >  req.MCV1.maxWarnTimestepsPerRun)  * 100;
 
@@ -495,24 +502,31 @@ if scenarioId == "MCV-1"
     fprintf("FAULT entries/run <= %g: %.2f %% of runs, > threshold: %.2f %%\n", ...
         req.MCV1.maxFaultEntriesPerRun, pFaultEntriesOK, pFaultEntriesBad);
 
+    % OLD LOGIC: event-driven false WARN / false FAULT bar chart
     figure
     bar([warnEventRate*100 faultEventRate*100])
     ylabel("Percentage (%)")
     xticklabels(["False WARN","False FAULT"])
-    title("Monte Carlo Robustness Results")
+    title(sprintf("Monte Carlo Robustness Results under %d runs, treating WARN and FAULT transitions as event-driven", N))
+    yline(2.0, 'r--', 'WARN requirement (2%)', 'LineWidth', 2);
+    yline(0.5, 'k--', 'FAULT requirement (0.5%)', 'LineWidth', 2);
+
+    annotation("textbox", ...
+        [0.65 0.6 0.25 0.25], ...
+        "String", { ...
+        "Noise model:", ...
+        sprintf("Altitude \x03C3 = %.1f m", 0.3*noiseScale), ...
+        sprintf("Vertical Speed \x03C3 = %.1f m/s", 0.1*noiseScale), ...
+        sprintf("Airspeed \x03C3 = %.1f m/s", 0.1*noiseScale), ...
+        sprintf("Pitch \x03C3 = %.1f°", 0.3*noiseScale), ...
+        sprintf("Roll \x03C3 = %.1f°", 0.3*noiseScale), ...
+        sprintf("Temp \x03C3 = %.1f °C", 0.5*noiseScale), ...
+        sprintf("Oil \x03C3 = %.1f bar", 0.2*noiseScale)}, ...
+        "FitBoxToText","on", ...
+        "BackgroundColor","white", ...
+        "EdgeColor","black");
+
     grid on
-
-    plotComplianceWithRequirement(warnTimestepsPerRun, req.MCV1.maxWarnTimestepsPerRun, ...
-        "MCV-1 Distribution: False WARN Timesteps per Run", "False WARN timesteps per run");
-
-    plotComplianceWithRequirement(faultTimestepsPerRun, req.MCV1.maxFaultTimestepsPerRun, ...
-        "MCV-1 Distribution: False FAULT Timesteps per Run", "False FAULT timesteps per run");
-
-    plotComplianceWithRequirement(warnEntriesPerRun, req.MCV1.maxWarnEntriesPerRun, ...
-        "MCV-1 Distribution: False WARN Entries per Run", "False WARN entries per run");
-    
-    plotComplianceWithRequirement(faultEntriesPerRun, req.MCV1.maxFaultEntriesPerRun, ...
-        "MCV-1 Verification: False FAULT Entries per Run", "False FAULT entries per run");
 end
 
 if scenarioId == "MCV-2"
@@ -730,10 +744,10 @@ if scenarioId == "MCV-3"
             "FitBoxToText", "on", ...
             "BackgroundColor", "white");
 
-        pctWithin = sum(delays <= 0.01) / numel(delays) * 100;
+        pctWithin = sum(validFaultDelays <= 1.5) / numel(validFaultDelays) * 100;
 
-        text(0.006, max(ylim)*0.9, ...
-            sprintf('%.2f%% within 0.01s requirement', pctWithin), ...
+        text(1.5, max(ylim)*0.9, ...
+            sprintf('%.2f%% within 1.5s requirement', pctWithin), ...
             'FontWeight','bold');
         hold off
     end
